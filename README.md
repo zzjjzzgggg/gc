@@ -2,11 +2,11 @@
 
 ## Requirements
 
-* The code is only tested on a 64 bit Ubuntu Server 14.04
-* Requires the C++11 support.
-* SNAP library.
+* The code is tested on a 64 bit Ubuntu Server 14.04.3 LTS.
+* Require the C++11 support.
+* Require the SNAP library.
   * The used SNAP library is slightly different from the official version.
-    You can check out the personalized version from here:
+    Please check out the specified library from here:
     https://github.com/zzjjzzgggg/netsnap.git
 
 ## Usage
