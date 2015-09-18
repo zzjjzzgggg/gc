@@ -1,0 +1,6 @@
+*.o
+*.Err
+.fuse*
+*.swp
+genbits
+iogreedy
