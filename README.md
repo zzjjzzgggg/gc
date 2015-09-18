@@ -43,7 +43,7 @@ usage: genbits
    * `-ps` contronls page size, i.e., how many nodes are organized in one file.
    * `-H` maximum hops defined in the GC measure.
    * `-N`, `-m` and `-r` are parameters related to bit-strings.
-5. After the command is finished, bit-strings are sotred in folder `bits`.
+5. Results will be saved in folders `blks` and `bits`.
 
 ### Run I/O-Efficient Greedy Algorithm
 
@@ -65,4 +65,4 @@ usage: iogreedy
 1. Calculate reward gains for each node: `iogreedy -g HEPTH.gz -job 1`.
 2. Run IO-efficient greedy algorithm: `iogreedy -g HEPTH.gz -job 2`.
    * `-B`, `-L` and `-H` are parameters related to the algorithm.
-   * results will be saved in the same fold of the graph.
+3. Results will be saved in the same fold of the graph.
