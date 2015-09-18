@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* The code is only tested on Ubuntu Server 14.04, x86_64.
+* The code is only tested on a 64 bit Ubuntu Server 14.04
 * Requires the C++11 support.
 * SNAP library.
   * The used SNAP library is slightly different from the official version.
@@ -13,18 +13,19 @@
 
 ### Generate bit-strings
 
->usage: genbits
->    -job     [n]      0: split graph
->		      1: gen bits
->		      2: validate (default: -1)
->    -g       [str]    graph file name (default: )
->    -bs      [n]      graph block size (default: 10000)
->    -ps      [n]      page size (default: 1000)
->    -H       [n]      max hops (default: 5)
->    -N       [n]      n approx (default: 8)
->    -m       [n]      bucket bits (default: 6)
->    -r       [n]      more bits (default: 6)
->
+```
+usage: genbits
+    -job     [n]      0: split graph
+		      1: gen bits
+		      2: validate (default: -1)
+    -g       [str]    graph file name (default: )
+    -bs      [n]      graph block size (default: 10000)
+    -ps      [n]      page size (default: 1000)
+    -H       [n]      max hops (default: 5)
+    -N       [n]      n approx (default: 8)
+    -m       [n]      bucket bits (default: 6)
+    -r       [n]      more bits (default: 6)
+```
 
 
 ### Run I/O-Efficient Greedy Algorithm
