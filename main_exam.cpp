@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     ArgsParser parser(argc, argv);
     const int jobid =
         parser.GetIntArg("-job", -1,
-                         "0: evaluate estimates\n"
+                         "0: evaluate approximation accuracy\n"
                          "\t\t      1: node reward gains\n"
                          "\t\t      2: io greedy\n"
                          "\t\t      3: multi pass");
