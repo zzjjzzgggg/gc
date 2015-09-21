@@ -2,5 +2,3 @@
 *.Err
 .fuse*
 *.swp
-genbits
-iogreedy
