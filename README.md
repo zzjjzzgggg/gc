@@ -8,6 +8,7 @@
   * The used SNAP library is slightly different from the official version.
     Please check out the specified library from here:
     https://github.com/zzjjzzgggg/netsnap.git
+* Please modify the `Makefile` according to your environment, e.g., compiler, library path, etc.
 
 ## Usage
 
@@ -64,5 +65,5 @@ usage: iogreedy
 #### Example:
 1. Calculate reward gains for each node: `iogreedy -g HEPTH.gz -job 1`.
 2. Run IO-efficient greedy algorithm: `iogreedy -g HEPTH.gz -job 2`.
-   * `-B`, `-L` and `-H` are parameters related to the algorithm.
+   * `-B`, `-L` and `-H` are parameters related to the IO-efficienty greedy algorithm.
 3. Results will be saved in the same fold of the graph.
