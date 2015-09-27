@@ -135,7 +135,6 @@ void IOGreedy::Iterations() {
     int t = 0;
     FILE* fw = fopen(GetIOGreedyRstFNm().CStr(), "w");
     fprintf(fw, "# step\tnode\treward\tgc\ttime\n");
-    fprintf(fw, "0\t-1\t0\t0\t%.2f\n", tm_.GetSecs());
     while (group_.Len() < budget_) {
         int inter=0;
         while(inter<intervals_ && inter_pids_[inter].empty())
