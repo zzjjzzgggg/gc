@@ -29,7 +29,7 @@ usage: genbits
 ```
 
 #### Example:
-1. Assume a graph is stored in the edgelist form, e.g.,
+Assume a graph is stored in the edgelist form, e.g.,
 ```
 1  3
 2  3
