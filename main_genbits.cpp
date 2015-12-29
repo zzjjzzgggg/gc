@@ -104,8 +104,7 @@ int main(int argc, char *argv[]) {
     const int jobid = parser.GetIntArg("-job", -1,
                                        "0: split graph\n"
                                        "\t\t      1: gen bits\n"
-                                       "\t\t      2: check graph\n"
-                                       "\t\t      3: validate");
+                                       "\t\t      2: check graph");
     pm.gf_nm_ = parser.GetStrArg("-g","", "graph file name").c_str();
     pm.blk_sz_ = parser.GetIntArg("-bs", 10000, "graph block size");
     pm.page_sz_ = parser.GetIntArg("-ps", 1000, "page size");
@@ -113,8 +112,6 @@ int main(int argc, char *argv[]) {
     pm.num_approx_ = parser.GetIntArg("-N", 8, "n approxes");
     pm.bkt_bits_ = parser.GetIntArg("-m", 6, "bucket bits");
     pm.more_bits_ = parser.GetIntArg("-r", 6, "more bits");
-    const int gp_sz = parser.GetIntArg("-S", 10, "group size");
-    const int gp_num = parser.GetIntArg("-R", 100, "num repeat");
     if(parser.IsEnd()) return 0;
 
     switch(jobid) {
@@ -129,10 +126,6 @@ int main(int argc, char *argv[]) {
         break;
     case 2:
         CheckGraph(pm);
-        break;
-    case 3:
-        // GenGroundTruth(pm, gp_sz, gp_num);
-        GCApprox(pm, gp_sz);
         break;
     default:
         break;
