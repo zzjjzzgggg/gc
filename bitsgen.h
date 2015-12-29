@@ -16,10 +16,10 @@
 class BitStrCal {
 private:
     TStr gf_nm_;
-    int blk_sz_, max_hops_, num_approx_, bkt_bits_, more_bits_,
+    int blk_sz_, max_hops_, approxes_, bkt_bits_, more_bits_,
         page_sz_, num_bkts_, blk_st_nd_, blk_ed_nd_, cache_st_nd_,
         cache_ed_nd_, max_nid_;
-    size_t num_bits_, bytes_per_bkt_, bytes_per_hp_, size_per_hp_;
+    size_t bits_, bytes_per_bkt_, bytes_per_hp_, size_per_hp_;
     TBitV src_bits_, cache_bits_;
 
 #ifdef USE_SNAPPY
@@ -41,10 +41,7 @@ private:
         return gf_nm_.GetFPath() +
             TStr::Fmt("bits/bits_%d_%d.z", page_id, hop);
     }
-    void SortAndCompressGraph(const int blk_id);
-
     void ReadPageAtHop(const int page_id, const int hop, char*& buf);
-
     void InitSrcBits(const int blk_id, const int hop);
     void PinPageAtHop(const int page_id, const int hop);
     uint64* FetchNdBitsAtHop(const int node, const int hop);
@@ -53,20 +50,17 @@ private:
                        const int dst_nd);
     void UpdateBlockAtHop(const int blk_id, const int hop);
     void SaveSrcBitsAtHop(const int hop);
-
     void WriteParms(const bool after_split_graph);
-
 public:
     BitStrCal(const Parms& pm);
 
-    /**
-     * Split a graph into blocks.
-     * REQUIRE: the edgelist is sorted by source node.
-     */
+    void CheckGraph();
+
+    // Split a graph into blocks. REQUIRE: edgelist is sorted by
+    // destination node.
     void SplitGraph();
     void InitBits();
     void GenBits();
-
 };
 
 

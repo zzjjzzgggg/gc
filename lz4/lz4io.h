@@ -36,7 +36,8 @@ namespace lz4 {
 
         void SetFileName(const char* file_name,
                          const bool append=false);
-        // add data to buffer, the data may be larger than buffer size.
+        // add data to buffer, the data may be larger than
+        // buffer size.
         void Write(const void* data, const size_t length);
         void Save(const int val) { Write(&val, sizeof(int)); }
         void Save(const double val){ Write(&val, sizeof(double)); };
@@ -57,7 +58,10 @@ namespace lz4 {
         LZ4In();
         LZ4In(const char* file_name): LZ4In() {
             input_ = fopen(file_name, "rb");
-            assert(input_ != NULL);
+            if(input_ == NULL) {
+                fprintf(stderr, "Open file '%s' failed!\n", file_name);
+                exit(1);
+            }
         }
         ~LZ4In();
 

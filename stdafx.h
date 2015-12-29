@@ -3,17 +3,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <functional>
 #include <string>
 #include <vector>
 #include <list>
+#include <queue>
+#include <map>
+#include <random>
+#include <future>
+#include <mutex>
 
-#include "/home/jzzhao/git_project/netsnap/snap/Snap.h"
+#include "netsnap/snap/Snap.h"
 #include "argsparser.h"
 
+using namespace std;
+typedef TVec<uint64> TBitV;
 
-// #define USE_SNAPPY
 #define USE_LZ4
 
-using namespace std;
+#define USE_EXP_WEIGHT
 
-typedef TVec<uint64> TBitV;
+#define LCHLLC

@@ -23,3 +23,21 @@ void PrintStatusBar(const int cur, const int total,
            cur, total, tm.GetStr(), tm.GetSecs());
     fflush(stdout);
 }
+
+
+void write_int(FILE* fp, const int i) {
+  fwrite(&i, sizeof(int), 1, fp);
+}
+
+void write_uint64(FILE* fp, const uint64 i) {
+  fwrite(&i, sizeof(uint64), 1, fp);
+}
+
+void read_int(FILE* fp, int* i) {
+  fread(i, sizeof(int), 1, fp);
+}
+
+void read_uint64(FILE* fp, uint64* i) {
+  fread(i, sizeof(uint64), 1, fp);
+}
+

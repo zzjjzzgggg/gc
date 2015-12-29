@@ -25,7 +25,10 @@ namespace lz4 {
     LZ4Out::LZ4Out() {
         data_buf_ = new char[DATA_CAPACITY];
         chunk_buf_ = new char[CHUNK_CAPACITY];
-        assert(data_buf_ != NULL && chunk_buf_ != NULL);
+        if(data_buf_ == NULL || chunk_buf_ == NULL) {
+            fprintf(stderr, "Allocate space failed!\n");
+            exit(1);
+        }
         len_dat_ = 0;
         output_ = NULL;
     }
@@ -37,7 +40,7 @@ namespace lz4 {
     }
 
     void LZ4Out::Close() {
-        if(output_!=NULL) {
+        if(output_ != NULL) {
             WriteChunk();
             fclose(output_);
             output_ = NULL;
@@ -49,7 +52,10 @@ namespace lz4 {
         Close();
         const char* mode = append ? "ab" : "wb";
         output_ = fopen(file_name, mode);
-        assert(output_ != NULL);
+        if(output_ == NULL) {
+            fprintf(stderr, "Open file '%s' failed!\n", file_name);
+            exit(1);
+        }
     }
 
     void LZ4Out::Write(const void* data, const size_t length) {
@@ -78,9 +84,12 @@ namespace lz4 {
         len_dat_ = 0;
     }
 
-    void LZ4Out::CompressFile(const char *input_file_name) {
-        FILE* file_id = fopen(input_file_name, "rb");
-        assert(file_id != NULL);
+    void LZ4Out::CompressFile(const char *file_name) {
+        FILE* file_id = fopen(file_name, "rb");
+        if(file_id == NULL) {
+            fprintf(stderr, "Open file '%s' failed!\n", file_name);
+            exit(1);
+        }
         char buffer[1024];
         size_t num_read;
         while(true) {
@@ -98,7 +107,10 @@ namespace lz4 {
     LZ4In::LZ4In() {
         chunk_buf_ = new char[CHUNK_CAPACITY];
         data_buf_ = new char[DATA_CAPACITY];
-        assert(data_buf_ != NULL && chunk_buf_ != NULL);
+        if(data_buf_ == NULL || chunk_buf_ == NULL) {
+            fprintf(stderr, "Allocate space failed!\n");
+            exit(1);
+        }
         input_ = NULL;
         len_data_ = num_read_ = 0;
     }
@@ -120,7 +132,10 @@ namespace lz4 {
     void LZ4In::SetFileName(const char* file_name) {
         Close();
         input_ = fopen(file_name, "rb");
-        assert(input_ != NULL);
+        if(input_ == NULL) {
+            fprintf(stderr, "Open file '%s' failed!\n", file_name);
+            exit(1);
+        }
     }
 
     bool LZ4In::ReadOriChunk(char* data, size_t& length) {

@@ -4,13 +4,24 @@
 
 * The code is tested on a 64 bit Ubuntu Server 14.04.3 LTS.
 * Require the C++11 support.
-* Require the SNAP library.
+* Tested on gcc 4.8.4 and llvm 3.6.0
+* Require the SNAP library (will be automatically downloaded).
   * The used SNAP library is slightly different from the official version.
-    Please check out the specified library from here:
+    If the script does not clone the code. Please clone the specified library from here:
     https://github.com/zzjjzzgggg/netsnap.git
-* Please modify the `Makefile` according to your environment, e.g., compiler, library path, etc.
 
 ## Usage
+
+The folder `exam` contains a minimum running example.
+
+```shell
+    cd exam
+    chmod u+x run_all.sh
+    ./run_all.sh
+```
+
+The script will automatically download the required library, compile the program, and run all the programs.
+
 
 ### Generate bit-strings
 
@@ -18,7 +29,7 @@
 usage: genbits
     -job     [n]      0: split graph
 		              1: gen bits
-		              2: validate (default: -1)
+		              2: check graph (default: -1)
     -g       [str]    graph file name (default: )
     -bs      [n]      graph block size (default: 10000)
     -ps      [n]      page size (default: 1000)
@@ -37,29 +48,24 @@ Assume a graph is stored in the edgelist form, e.g.,
 ...
 ```
 2. First, sort the edges by source vertices, e.g., `sort -n HEPTH -o HEPTH_sorted`.
-3. Split the graph into blocks: `genbits -g HEPTH.gz -job 0`.
-   * GZip format of the graph file is supported.
+3. Convert the graph into binary edgelist format for fast loading.
+4. Split the graph into blocks: `genbits -g HEPTH.gz -job 0`.
    * specify the block size by `-bs` parameter.
-4. Generate bit-strings: `genbits -g HEPTH.gz -job 1`.
+5. Generate bit-strings: `genbits -g HEPTH.gz -job 1`.
    * `-ps` contronls page size, i.e., how many nodes are organized in one file.
    * `-H` maximum hops defined in the GC measure.
    * `-N`, `-m` and `-r` are parameters related to bit-strings.
-5. Results will be saved in folders `blks` and `bits`.
+6. Results will be saved in folders `blks` and `bits`.
 
 ### Run I/O-Efficient Greedy Algorithm
 
 ```
 usage: iogreedy
-    -job     [n]      0: evaluate approximation performance
-                      1: node reward gains
-		              2: io greedy
-		              3: multi pass (default: -1)
+    -job     [n]      0: run io-greedy
     -g       [str]    graph (default: )
     -B       [n]      budget (default: 500)
     -L       [flt]    lambda (default: 0.50)
     -H       [n]      max hops (default: 5)
-    -S       [n]      group size (default: 10)
-    -R       [n]      num repeat (default: 100)
 ```
 
 #### Example:

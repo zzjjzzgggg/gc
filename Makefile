@@ -1,31 +1,35 @@
-CXX = clang++
+# CXX = clang++
+CXX = g++
 
 CXXFLAGS += -Wall -std=c++11
 LDFLAGS += -lrt -pthread -std=c++11
 
 ## Main application file
-MAIN = genbits
+GENBITS = genbits
 IOGREEDY = iogreedy
-LIBDIR = /home/jzzhao/git_project
-LIB = -I$(LIBDIR)/netsnap/glib -I$(LIBDIR)/netsnap/snap
+VALI_MEASURE = vali_measure
+LIB = -Inetsnap/glib -Inetsnap/snap
 
 
 OBJS_COM = lz4.o lz4io.o Snap.o argsparser.o utils.o
-OBJS_MAIN = bitsgen.o bitsdecode.o $(OBJS_COM)
+OBJS_GENBITS = bitsgen.o bitsdecode.o $(OBJS_COM)
 OBJS_IOGREEDY = bitsdecode.o iogreedy.o $(OBJS_COM)
 
-DEBUG = 
+DEBUG = -g
 
-all: $(MAIN) $(IOGREEDY)
+all: $(GENBITS) $(VALI_MEASURE) $(IOGREEDY)
 opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
 
 # COMPILE
 
-$(MAIN): main_genbits.cpp $(OBJS_MAIN)
-	$(CXX) $(DEBUG) $(OBJS_MAIN) -o $(MAIN) $(LIB) $(LDFLAGS) $<
+$(GENBITS): main_$(GENBITS).cpp $(OBJS_GENBITS)
+	$(CXX) $(DEBUG) $(OBJS_GENBITS) -o $(GENBITS) $(LIB) $(LDFLAGS) $<
 
-$(IOGREEDY): main_exam.cpp $(OBJS_IOGREEDY)
+$(VALI_MEASURE): main_$(VALI_MEASURE).cpp $(OBJS_GENBITS)
+	$(CXX) $(DEBUG) $(OBJS_GENBITS) -o $(VALI_MEASURE) $(LIB) $(LDFLAGS) $<
+
+$(IOGREEDY): main_$(IOGREEDY).cpp $(OBJS_IOGREEDY)
 	$(CXX) $(DEBUG) $(OBJS_IOGREEDY) -o $(IOGREEDY) $(LIB) $(LDFLAGS) $<
 
 bitsgen.o: bitsgen.cpp bitsgen.h stdafx.h
@@ -38,7 +42,7 @@ iogreedy.o: iogreedy.cpp iogreedy.h stdafx.h
 	$(CXX) -c $(DEBUG) $(CXXFLAGS) $(LIB) $<
 
 Snap.o:
-	$(CXX) -c $(CXXFLAGS) $(LIB) $(LIBDIR)/netsnap/snap/Snap.cpp
+	$(CXX) -c $(CXXFLAGS) $(LIB) netsnap/snap/Snap.cpp
 
 argsparser.o: argsparser.cpp argsparser.h
 	$(CXX) -c $(CXXFLAGS) $<
@@ -53,5 +57,5 @@ lz4.o: lz4/lib/lz4.c
 	$(CXX) -c -x c -Wall $<
 
 clean:
-	rm -f *.o *.Err $(MAIN) $(IOGREEDY)
+	rm -f *.o *.Err $(GENBITS) $(IOGREEDY) $(VALI_MEASURE)
 	rm -rf Debug Release
