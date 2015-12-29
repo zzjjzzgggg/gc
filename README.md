@@ -47,7 +47,7 @@ Assume a graph is stored in the edgelist form, e.g.,
 3  5
 ...
 ```
-2. First, sort the edges by source vertices, e.g., `sort -n HEPTH -o HEPTH_sorted`.
+2. First, sort the edges by destination, e.g., `sort -n -k2,2 -k1,1 HEPTH -o HEPTH_sorted`.
 3. Convert the graph into binary edgelist format for fast loading.
 4. Split the graph into blocks: `genbits -g HEPTH.gz -job 0`.
    * specify the block size by `-bs` parameter.
