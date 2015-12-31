@@ -17,9 +17,9 @@
 The folder `exam` contains a minimum running example.
 
 ```shell
-    cd exam
-    chmod u+x run_all.sh
-    ./run_all.sh
+cd exam
+chmod u+x run_all.sh
+./run_all.sh
 ```
 
 The script will automatically download the required library, compile the
