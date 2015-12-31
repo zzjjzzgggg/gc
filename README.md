@@ -3,14 +3,16 @@
 ## Requirements
 
 * The code is tested on a 64 bit Ubuntu Server 14.04.3 LTS.
-* Require the C++11 support.
-* Tested on gcc 4.8.4 and llvm 3.6.0
+* Tested on GCC 4.8.4 and LLVM 3.6.0
+* Require the C++11 `pthread` support, `-pthread -std=c++11`.
 * Require the SNAP library (will be automatically downloaded).
   * The used SNAP library is slightly different from the official version.
-    If the script does not clone the code. Please clone the specified library from here:
-    https://github.com/zzjjzzgggg/netsnap.git
+    If the script does not clone the code. Please clone the specified
+    library from here: https://github.com/zzjjzzgggg/netsnap.git
 
 ## Usage
+
+### A minimum running example
 
 The folder `exam` contains a minimum running example.
 
@@ -20,8 +22,32 @@ The folder `exam` contains a minimum running example.
     ./run_all.sh
 ```
 
-The script will automatically download the required library, compile the program, and run all the programs.
+The script will automatically download the required library, compile the
+program, and run all the programs.
 
+
+### Input graph format ###
+Assume a graph is stored in the edgelist form, e.g.,
+```
+1  3
+2  3
+3  5
+...
+```
+
+1. First, sort the edges by destination.
+```shell
+sort -n -k2,2 -k1,1 input_graph -o input_graph_sorted
+```
+
+2. Convert the graph into a binary edgelist format for the purpose of fast
+   loading.
+  * There is also a tool provided in the folder `netsnap/graphstat`.
+  * Use the following command to convert a graph into binary edgelist
+    format:
+    ```shell
+    graphstat -i:input_graph_sorted.gz -f:e
+    ```
 
 ### Generate bit-strings
 
@@ -39,23 +65,23 @@ usage: genbits
     -r       [n]      more bits (default: 6)
 ```
 
-#### Example:
-Assume a graph is stored in the edgelist form, e.g.,
-```
-1  3
-2  3
-3  5
-...
-```
-2. First, sort the edges by destination, e.g., `sort -n -k2,2 -k1,1 HEPTH -o HEPTH_sorted`.
-3. Convert the graph into binary edgelist format for fast loading.
-4. Split the graph into blocks: `genbits -g HEPTH.gz -job 0`.
+#### usage:
+1. Split the graph into blocks:
+   ```shell
+       genbits -g input_graph_sorted_be.gz -job 0
+   ```
+
    * specify the block size by `-bs` parameter.
-5. Generate bit-strings: `genbits -g HEPTH.gz -job 1`.
-   * `-ps` contronls page size, i.e., how many nodes are organized in one file.
+2. Generate bit-strings:
+   ```shell
+       genbits -g HEPTH.gz -job 1
+   ```
+
+   * `-ps` contronls page size, i.e., how many nodes are organized in one
+     file.
    * `-H` maximum hops defined in the GC measure.
    * `-N`, `-m` and `-r` are parameters related to bit-strings.
-6. Results will be saved in folders `blks` and `bits`.
+3. Results will be saved in folders `blks` and `bits`.
 
 ### Run I/O-Efficient Greedy Algorithm
 
@@ -68,7 +94,7 @@ usage: iogreedy
     -H       [n]      max hops (default: 5)
 ```
 
-#### Example:
+#### usage:
 1. Calculate reward gains for each node: `iogreedy -g HEPTH.gz -job 1`.
 2. Run IO-efficient greedy algorithm: `iogreedy -g HEPTH.gz -job 2`.
    * `-B`, `-L` and `-H` are parameters related to the IO-efficienty greedy algorithm.
