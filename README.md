@@ -36,14 +36,17 @@ Assume a graph is stored in the edgelist form, e.g.,
 ```
 
 1. First, sort the edges by destination.
+
    ```shell
        sort -n -k2,2 -k1,1 input_graph -o input_graph_sorted
     ```
+
 2. Convert the graph into a binary edgelist format for the purpose of fast
    loading.
   * There is also a tool provided in the folder `netsnap/graphstat`.
   * Use the following command to convert a graph into binary edgelist
     format:
+
     ```shell
     graphstat -i:input_graph_sorted.gz -f:e
     ```
