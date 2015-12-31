@@ -44,6 +44,7 @@ Assume a graph is stored in the edgelist form, e.g.,
 2. Convert the graph into a binary edgelist format for the purpose of fast
    loading.
   * There is also a tool provided in the folder `netsnap/graphstat`.
+    Compile it and then you will obtain `graphstat`.
   * Use the following command to convert a graph into binary edgelist
     format:
 
