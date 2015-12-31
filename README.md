@@ -78,7 +78,7 @@ usage: genbits
 2. Generate bit-strings:
 
    ```shell
-   genbits -g HEPTH.gz -job 1
+   genbits -g input_graph_sorted_be.gz -job 1
    ```
 
    * `-ps` contronls page size, i.e., how many nodes are organized in one
@@ -102,13 +102,13 @@ usage: iogreedy
 1. Calculate reward gains for each node:
 
    ```shell
-   iogreedy -g HEPTH.gz -job 1
+   iogreedy -g input_graph_sorted_be.gz -job 1
    ```
 
 2. Run IO-efficient greedy algorithm:
 
    ```shell
-   iogreedy -g HEPTH.gz -job 2
+   iogreedy -g input_graph_sorted_be.gz -job 2
    ```
 
    * `-B`, `-L` and `-H` are parameters related to the IO-efficienty
