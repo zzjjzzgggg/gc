@@ -36,10 +36,9 @@ Assume a graph is stored in the edgelist form, e.g.,
 ```
 
 1. First, sort the edges by destination.
-```shell
-sort -n -k2,2 -k1,1 input_graph -o input_graph_sorted
-```
-
+   ```shell
+       sort -n -k2,2 -k1,1 input_graph -o input_graph_sorted
+    ```
 2. Convert the graph into a binary edgelist format for the purpose of fast
    loading.
   * There is also a tool provided in the folder `netsnap/graphstat`.
@@ -70,13 +69,11 @@ usage: genbits
    ```shell
        genbits -g input_graph_sorted_be.gz -job 0
    ```
-
    * specify the block size by `-bs` parameter.
 2. Generate bit-strings:
    ```shell
        genbits -g HEPTH.gz -job 1
    ```
-
    * `-ps` contronls page size, i.e., how many nodes are organized in one
      file.
    * `-H` maximum hops defined in the GC measure.
