@@ -2,13 +2,9 @@
 
 ## Requirements
 
-* The code is tested on a 64 bit Ubuntu Server 14.04.3 LTS.
-* Tested on GCC 4.8.4 and LLVM 3.6.0
-* Require the C++11 `pthread` support, `-pthread -std=c++11`.
-* Require the SNAP library (will be automatically downloaded).
-  * The used SNAP library is slightly different from the official version.
-    If the script does not clone the code. Please clone the specified
-    library from here: https://github.com/zzjjzzgggg/netsnap.git
+* GCC 4.8.4 and LLVM 3.6.0, or higher
+* C++11 `pthread` support, `-pthread -std=c++11`.
+* SNAP library (will be automatically downloaded).
 
 ## Usage
 
