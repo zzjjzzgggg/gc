@@ -2,7 +2,7 @@
 *.Err
 .fuse*
 *.swp
-netsnap/*
+netsnap/
 genbits
 iogreedy
 vali_measure
