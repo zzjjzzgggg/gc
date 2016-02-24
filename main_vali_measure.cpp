@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
     pm.gf_nm_ =parser.GetStrArg("-g", "", "graph file name").c_str();
     pm.GetBitsGenParms();
     pm.max_hops_ = parser.GetIntArg("-H", pm.max_hops_, "max hops");
+    pm.alpha_ = parser.GetFltArg("-a", pm.alpha_, "alpha");
     pm.cache_capacity_ = parser.GetIntArg("-C", pm.cache_capacity_,
                                           "cache capacity (pages)");
     const int gp_sz = parser.GetIntArg("-S", 10, "group size");

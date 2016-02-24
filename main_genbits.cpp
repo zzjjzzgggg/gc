@@ -15,7 +15,6 @@ void SplitGraph(const Parms& pm) {
     BitGen.SplitGraph();
 }
 
-
 void GenBitStrings(const Parms& pm) {
     TExeSteadyTm tm;
     BitStrCal BitGen(pm);
@@ -28,42 +27,6 @@ void GenBitStrings(const Parms& pm) {
     tm.Tick();
     BitGen.GenBits();
     printf("%s\n", tm.GetStr());
-}
-
-/**
- * generate `num` groups of size `size`, each
- * group stores as a row of the output file,
- * ground truth GC values using Exponential weighting and
- * inverse weighting are appended at the end of each row.
- */
-void GenGroundTruth(const Parms& pm, const int gp_size,
-                    const int gp_num) {
-    PUNGraph Graph=TSnap::LoadBinaryEdgeList<PUNGraph>(pm.gf_nm_);
-    TBreathFS<PUNGraph> bfs(Graph);
-    TIntV nodes, group;
-    TFltIntPrV gc_gids;
-    vector<double> nbr_cnt(pm.max_hops_ + 1);
-    Graph->GetNIdV(nodes);
-    TStr out_fnm = pm.gf_nm_.GetFPath() +
-        TStr::Fmt("groundtruth_%d.gz", gp_size);
-    PSOut pout = TZipOut::New(out_fnm);
-    for (int gid=0; gid<gp_num; gid++) {
-        TRandom::Choose(nodes, group, gp_size);
-        for(int i=0; i<gp_size; i++) pout->Save(group[i]);
-        // ground truth
-        bfs.DoBfs(group, true, false, -1, pm.max_hops_);
-        nbr_cnt.assign(nbr_cnt.size(), 0);
-        for(int id=bfs.NIdDistH.FFirstKeyId();
-            bfs.NIdDistH.FNextKeyId(id);)
-            nbr_cnt[bfs.NIdDistH[id]]++;
-        double real_val_exp = 0, real_val_inv = 0;
-        for(int hop=0; hop<=pm.max_hops_; hop++) {
-            real_val_exp += ExpWeights[hop]*nbr_cnt[hop];
-            real_val_inv += InvWeights[hop]*nbr_cnt[hop];
-        }
-        pout->Save(real_val_exp);
-        pout->Save(real_val_inv);
-    }
 }
 
 void GCApprox(const Parms& pm, const int gp_size) {

@@ -16,7 +16,7 @@ protected:
         bytes_per_pg_hp_, size_per_pg_hp_,
         bytes_per_nd_, size_per_nd_,
         bytes_per_pg_, size_per_pg_;
-    double alpha_m_;
+    double alpha_m_, alpha_;
 
     TBitV cache_bits_;
     // cache structure illustration:
@@ -48,32 +48,21 @@ protected:
     TBitV group_bits_;
 
     TExeSteadyTm tm_;
-private:
-    double DecodeByLCHLLC(const char* hop_bits);
-    double DecodeByLCHLLC_fast(const char* hop_bits);
-    inline bool IsSet(const size_t bit, const int bkt, const int apx,
-                      const char* hop_bits) const {
-        return *(hop_bits + bkt * bytes_per_bkt_ +
-                 (bit * approxes_ + apx)/8) & (1 << (apx % 8));
-    }
-    // double GetReward(const int node);
-    double GetReward(const int node,
-                     const int page_id,
-                     const int cache_unit);
+protected:
     // pin bits of hop 1 to max_hop to one cache unit.
     // cache_unit should be in range [0, cache_capacity - 1].
     void PinPageToCacheUnit(const int page_id,
                             const int cache_unit);
     void NodeRewardTask(const int pid_from, const int pid_to,
                         const int processor_id);
-protected:
     inline TStr GetNdRwdFNm(const int core_id) const {
         return gf_nm_.GetFPath() +
-            TStr::Fmt("nd_rwd%d_%d.z", max_hops_, core_id);
+            TStr::Fmt("nd_rwd%d_%g_%d.z",
+                      max_hops_, alpha_, core_id);
     }
     inline TStr GetMxRwdFNm(const int core_id) const {
-        return gf_nm_.GetFPath() +
-            TStr::Fmt("mx_rwd%d_%d.z", max_hops_, core_id);
+        return gf_nm_.GetFPath() + TStr::Fmt("mx_rwd%d_%g_%d.z",
+                                       max_hops_, alpha_, core_id);
     }
     TStr GetBitsFNm(const int page_id, const int hop) const {
         return gf_nm_.GetFPath() +
@@ -83,17 +72,28 @@ protected:
     // pin pages with page_id from hop 1 to max_hops
     void PinPage(const int page_id);
     // NOTE: node_bits start from hop 1
-    double DecodeAtHop(const char* hop_bits);
+    double DecodeAtHop(const char* hop_bits) const;
     char* GetNodeBitsFstHop(const int node);
     void GetNodeBits(const int node, char* node_bits);
     void GetNodeBits(const int node, uint64* node_bits) {
         GetNodeBits(node, (char*)node_bits);
     }
+    void GetNodeBitsFromCacheUnit(const int core_id, const int node,
+                                  uint64* node_bits);
     // NOTE: node_bits start from hop 1
     double GetRewardGain(const int node, const uint64* nd_bits);
+    double GetReward(const int node, const int cache_unit);
+    double GetReward(const uint64* nd_bits, const int group_size,
+                     const uint64* group_bits) const;
     void AddNode(const int nd, const double rwd,
                  const uint64* nd_bits, const bool echo=true,
                  FILE* fp=NULL);
+    void Reset() {
+        group_bits_.PutAll(0);
+        group_.Clr(false);
+        gc_ = 0;
+        tm_.Tick();
+    }
 public:
     BitsDecode(const Parms& pm);
     void SetWeights(const double weights[]) {
@@ -102,11 +102,14 @@ public:
             weights_[hop] = weights[hop];
     }
     void GetNodeNbrs(const int node, vector<double>& nbr_cnts);
+    double GetNodeNbrsHop1(const int node);
     void GetGroupNbrs(const vector<int>& group,
                       vector<double>& nbr_cnts);
     double GetGroupGC(const TIntV& group);
+    double GetGroupGC(const vector<int>& group);
     void GetRewardAll();
 
+    void Test();
 };
 
 

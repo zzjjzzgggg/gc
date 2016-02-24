@@ -21,11 +21,15 @@ read -p "Press [Enter] key to continue ..."
 ./vali_measure -g exam/hepth_be.gz -job 2
 ./vali_measure -g exam/hepth_be.gz -job 1
 
-echo -e "\n\nRun IO-greedy algorithm ..."
+echo -e "\n\nRun monotone IO-greedy algorithm ..."
 read -p "Press [Enter] key to continue ..."
-./vali_measure -g exam/hepth_be.gz -job 3
-./iogreedy -g exam/hepth_be.gz -job 0 -B 100
+./vali_measure -g exam/hepth_be.gz -job 3 -a 0
+./iogreedy -g exam/hepth_be.gz -job 0 -B 100 -a 0
 
-rm -rf exam/greedy/
+echo -e "\n\nRun non-monotone IO-greedy algorithm ..."
+read -p "Press [Enter] key to continue ..."
+./vali_measure -g exam/hepth_be.gz -job 3 -a 1
+./iogreedy -g exam/hepth_be.gz -job 1 -B 100 -a 1
+
 
 echo "done."

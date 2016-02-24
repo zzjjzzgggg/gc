@@ -18,19 +18,17 @@ private:
     TStr gf_nm_;
     int blk_sz_, max_hops_, approxes_, bkt_bits_, more_bits_,
         page_sz_, num_bkts_, blk_st_nd_, blk_ed_nd_, cache_st_nd_,
-        cache_ed_nd_, max_nid_;
+        cache_ed_nd_, max_nid_, num_processors_, max_page_id_;
     size_t bits_, bytes_per_bkt_, bytes_per_hp_, size_per_hp_;
     TBitV src_bits_, cache_bits_;
 
-#ifdef USE_SNAPPY
-    snappy::SnappyOut wtr_;
-    snappy::SnappyIn rdr_;
-#endif // USE_SNAPPY
+    TExeSteadyTm tm_;
 
-#ifdef USE_LZ4
-    lz4::LZ4Out wtr_;
-    lz4::LZ4In rdr_;
-#endif // USE_LZ4
+    mutex mu_;
+    condition_variable use_page_cond_, buf_page_cond_;
+    int buf_size_, cur_pid_=-1;
+    vector<int> pid_table_;
+    vector<bool> pid_ready_;
 
 private:
     TStr GetGBlkFNm(const int blk_id) const {
@@ -51,6 +49,25 @@ private:
     void UpdateBlockAtHop(const int blk_id, const int hop);
     void SaveSrcBitsAtHop(const int hop);
     void WriteParms(const bool after_split_graph);
+
+    void SynUpdateBlockAtHop(const int blk_id, const int hop);
+    void TraverseGraphBlock(const TStr& graph_blk_fnm,
+                            const int hop);
+    void SynPinPageAtHop(const int hop, const int idx);
+    int NextPageToLoad() const {
+        int page_id = cur_pid_;
+        // try at most buf_size_ times
+        for (int i=0; i<buf_size_; i++) {
+            int j=0;
+            while (j<buf_size_) {
+                if(pid_table_[j]==page_id) break;
+                j++;
+            }
+            if (j==buf_size_) break;
+            page_id ++;
+        }
+        return page_id;
+    }
 public:
     BitStrCal(const Parms& pm);
 

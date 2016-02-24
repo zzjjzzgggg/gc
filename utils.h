@@ -6,12 +6,15 @@
 class Parms {
 public:
     int max_hops_=5, num_approx_=8, bkt_bits_=6, more_bits_=6,
-        page_sz_=1000, blk_sz_=10000, max_nid_=1, budget_=100,
-        cache_capacity_=10;
-    double lambda_=0.5;
+        page_sz_=1000, blk_sz_=10000, max_nid_=1, budget_=500,
+        cache_capacity_=10, buf_capacity_, num_processors_;
+    double lambda_=0.5, alpha_=0.5;
     TStr gf_nm_;
 public:
-    Parms(){}
+    Parms(){
+        num_processors_ = std::thread::hardware_concurrency();
+        if (num_processors_ > 8) num_processors_ = 8;
+    }
     void Echo() const {
         printf(" max_hops: %d\n"
                " num_approx: %d\n"
@@ -22,11 +25,16 @@ public:
                " max_nid: %d\n"
                " graph: %s\n"
                " lambda: %.2f\n"
+               " alpha: %.2f\n"
                " cache capacity: %d\n"
+               " buf capacity: %d\n"
+               " processors: %d\n"
                " budget: %d\n\n",
                max_hops_, num_approx_, bkt_bits_, more_bits_,
                page_sz_, blk_sz_,max_nid_, gf_nm_.CStr(),
-               lambda_, cache_capacity_, budget_);
+               lambda_, alpha_, cache_capacity_, buf_capacity_,
+               num_processors_,
+               budget_);
     }
 
     void GetGraphSplitParms(const TStr& dir = "blks") {

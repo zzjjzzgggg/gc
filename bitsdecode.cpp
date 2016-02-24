@@ -9,6 +9,8 @@ BitsDecode::BitsDecode(const Parms& pm) {
     more_bits_ = pm.more_bits_;
     page_sz_ = pm.page_sz_;
     cache_capacity_ = pm.cache_capacity_;
+    alpha_ = pm.alpha_;
+    num_processors_ = pm.num_processors_;
 
     // bits per nd per hop
     bits_ = int(ceil(TMath::Log2(max_nid_ + 1))) - bkt_bits_ +
@@ -36,10 +38,8 @@ BitsDecode::BitsDecode(const Parms& pm) {
     group_bits_.Gen(size_per_nd_);
     group_bits_.PutAll(0);
 
-    num_processors_ = std::thread::hardware_concurrency();
-    if (num_processors_ > 8) num_processors_ = 8;
 
-   alpha_m_ = HLLCAlpha[bkt_bits_] * num_bkts_ * num_bkts_;
+    alpha_m_ = HLLCAlpha[bkt_bits_] * num_bkts_ * num_bkts_;
 
 #ifdef USE_EXP_WEIGHT
     SetWeights(ExpWeights);
@@ -47,6 +47,8 @@ BitsDecode::BitsDecode(const Parms& pm) {
 #ifdef USE_INV_WEIGHT
     SetWeights(InvWeights);
 #endif // USE_INV_WEIGHT
+
+    weights_[0] *= (1-alpha_);
 
     printf("one hop: %s, page size: %s, node bytes: %s\n",
            PrettySize(bytes_per_hp_).CStr(),
@@ -71,6 +73,23 @@ void BitsDecode::PinPageToCacheUnit(const int page_id,
         ReadPageAtHop(page_id, hop, page_ptr);
         page_ptr += bytes_per_pg_hp_;
     }
+}
+
+// after pinning a page to a certain cachce unit, use this function
+// to fecth bit-strs of a node from this cache unit
+void BitsDecode::GetNodeBitsFromCacheUnit(const int core_id,
+                                          const int node,
+                                          uint64* node_bits) {
+    char* dst_bits = (char*)node_bits;
+    char* src_bits =
+        (char*)(cache_bits_.BegI() + core_id * size_per_pg_) +
+        (node % page_sz_) * bytes_per_hp_;
+    for(int hop=1; hop<=max_hops_; hop++) {
+        memcpy(dst_bits, src_bits, bytes_per_hp_);
+        dst_bits += bytes_per_hp_;
+        src_bits += bytes_per_pg_hp_;
+    }
+
 }
 
 void BitsDecode::PinPage(const int page_id) {
@@ -111,35 +130,7 @@ void BitsDecode::GetNodeBits(const int node, char* node_bits) {
     }
 }
 
-double BitsDecode::DecodeAtHop(const char* hop_bits) {
-   return DecodeByLCHLLC_fast(hop_bits);
-}
-
-double BitsDecode::DecodeByLCHLLC(const char* hop_bits) {
-    double est_val = 0;
-    for (int n = 0; n < approxes_; n++) {
-        double empty_bkts_ratio = 0, inv_z = 0;
-        for (int m=0; m<num_bkts_; m++) {
-            int max_bit = 0;
-            // find the highest position with bit '1'
-            for (size_t bit=0; bit<bits_; bit++) {
-                if(IsSet(bit, m, n, hop_bits)) max_bit = bit + 1;
-            }
-            if (max_bit == 0) empty_bkts_ratio++;
-            inv_z += pow(2, -max_bit);
-        }
-        empty_bkts_ratio /= num_bkts_;
-        if (empty_bkts_ratio >= 0.1397)
-            est_val += -num_bkts_ * log(empty_bkts_ratio);
-        else
-            est_val += alpha_m_ / inv_z;
-    }
-    return est_val / approxes_;
-}
-
-// need to adapt this to more general case
-double BitsDecode::DecodeByLCHLLC_fast(const char* hop_bits) {
-    assert(approxes_ == 8);
+double BitsDecode::DecodeAtHop(const char* hop_bits) const {
     vector<double> inv_Z_vec(approxes_, 0);
     vector<double> empty_bkts_vec(approxes_, 0);
     for (int bkt=0; bkt<num_bkts_; bkt++) {
@@ -156,8 +147,6 @@ double BitsDecode::DecodeByLCHLLC_fast(const char* hop_bits) {
                 if (ucval & 0x01) {
                     double max_bit = byte+1;
                     inv_Z_vec[apx] += pow(2, -max_bit);
-                    // printf("bkt: %d, byte: %d, max bit: %d\n",
-                    //        bkt, byte, byte+1);
                 }
                 ucval >>= 1;
                 apx ++;
@@ -187,7 +176,6 @@ double BitsDecode::DecodeByLCHLLC_fast(const char* hop_bits) {
     return est_val / approxes_;
 }
 
-
 void BitsDecode::GetNodeNbrs(const int nd,
                              vector<double>& nbr_cnt) {
     nbr_cnt[0] = 1;
@@ -196,6 +184,11 @@ void BitsDecode::GetNodeNbrs(const int nd,
         nbr_cnt[hop] = DecodeAtHop(hop_bits);
         hop_bits += bytes_per_pg_hp_;
     }
+}
+
+double BitsDecode::GetNodeNbrsHop1(const int node) {
+    char* hop_bits = GetNodeBitsFstHop(node);
+    return DecodeAtHop(hop_bits);
 }
 
 void BitsDecode::GetGroupNbrs(const vector<int>& group,
@@ -208,8 +201,7 @@ void BitsDecode::GetGroupNbrs(const vector<int>& group,
         uint64* dst = group_bits.BegI();
         uint64* src = (uint64*)GetNodeBitsFstHop(group[i]);
         for(int hop=1; hop<=max_hops_; hop++) {
-            for(size_t j=0; j<size_per_hp_; j++)
-                *(dst++) |= src[j];
+            for(size_t j=0; j<size_per_hp_; j++) *(dst++) |= src[j];
             src += size_per_pg_hp_;
         }
     }
@@ -231,21 +223,25 @@ double BitsDecode::GetGroupGC(const TIntV& group) {
         uint64* dst = group_bits.BegI();
         uint64* src = (uint64*)GetNodeBitsFstHop(group[i]);
         for(int hop=1; hop<=max_hops_; hop++) {
-            for(size_t j=0; j<size_per_hp_; j++) *(dst++) |= src[j];
+            for(size_t j=0; j<size_per_hp_; dst++, j++) *dst |= src[j];
             src += size_per_pg_hp_;
         }
     }
     char* hop_bits = (char*)(group_bits.BegI());
-    double n0 = group.Len(), n1;
-    double gc = n0 * weights_[0];
+    double n0 = group.Len(), n1, gc = n0 * weights_[0];
     for(int hop=1; hop<=max_hops_; hop++) {
         n1 = DecodeAtHop(hop_bits);
-        assert(n1 >= n0);
         gc += (n1 - n0) * weights_[hop];
         hop_bits += bytes_per_hp_;
         n0 = n1;
     }
     return gc;
+}
+
+double BitsDecode::GetGroupGC(const vector<int>& group) {
+    TIntV g(group.size());
+    for (size_t i=0; i<group.size(); i++) g[i] = group[i];
+    return GetGroupGC(g);
 }
 
 // executing in parallel
@@ -269,12 +265,13 @@ void BitsDecode::NodeRewardTask(const int pid_fr,
                                 const int pid_to,
                                 const int core_id) {
     double rwd, max_rwd = 0;
+    printf("%s\n", GetNdRwdFNm(core_id).CStr());
     lz4::LZ4Out wtr(GetNdRwdFNm(core_id).CStr());
     for (int pid=pid_fr; pid<=pid_to; pid++) {
         int end_nd = min(max_nid_, (pid + 1) * page_sz_ - 1);
         PinPageToCacheUnit(pid, core_id);
         for(int nd=pid*page_sz_; nd<=end_nd; nd++) {
-            rwd = GetReward(nd, pid, core_id);
+            rwd = GetReward(nd, core_id);
             wtr.Save(nd);
             wtr.Save(rwd);
             if(rwd > max_rwd) max_rwd = rwd;
@@ -284,13 +281,11 @@ void BitsDecode::NodeRewardTask(const int pid_fr,
     wtr.Save(max_rwd);
 }
 
-double BitsDecode::GetReward(const int node,
-                             const int page_id,
-                             const int core_id) {
+double BitsDecode::GetReward(const int node, const int core_id) {
     double n0 = 1, n1, rwd = weights_[0];
     char* hop_bits =
         (char*)(cache_bits_.BegI() + core_id * size_per_pg_) +
-        (node - page_id*page_sz_) * bytes_per_hp_;
+        (node%page_sz_) * bytes_per_hp_;
     for(int hop=1; hop<=max_hops_; hop++) {
         n1 = DecodeAtHop(hop_bits);
         rwd += (n1 - n0) * weights_[hop];
@@ -302,8 +297,7 @@ double BitsDecode::GetReward(const int node,
 
 ////////////////////////////
 // node group
-double BitsDecode::GetRewardGain(const int nd,
-                                 const uint64* nd_bits) {
+double BitsDecode::GetRewardGain(const int nd, const uint64* nd_bits){
     if(group_.IsKey(nd)) return 0;
     TBitV tmp_buf(size_per_nd_);
     for (size_t i =0; i<size_per_nd_; i++)
@@ -320,6 +314,24 @@ double BitsDecode::GetRewardGain(const int nd,
     return gc - gc_;
 }
 
+double BitsDecode::GetReward(const uint64* nd_bits,
+                             const int group_size,
+                             const uint64* group_bits) const {
+    TBitV tmp_buf(size_per_nd_);
+    for (size_t i =0; i<size_per_nd_; i++)
+        tmp_buf[i] = group_bits[i] | nd_bits[i];
+    double n0 = group_size + 1, n1;
+    double gc = n0 * weights_[0];
+    char* hop_bits = (char*)(tmp_buf.BegI());
+    for (int hop=1; hop<=max_hops_; hop++) {
+        n1 = DecodeAtHop(hop_bits);
+        gc += (n1 - n0) * weights_[hop];
+        n0 = n1;
+        hop_bits += bytes_per_hp_;
+    }
+    return gc;
+}
+
 void BitsDecode::AddNode(const int node, const double rwd,
                          const uint64* node_bits, const bool echo,
                          FILE* fp) {
@@ -328,7 +340,7 @@ void BitsDecode::AddNode(const int node, const double rwd,
     for (size_t i=0; i<size_per_nd_; i++)
         group_bits_[i] |= node_bits[i];
     if(echo) {
-        printf("  %4d %9d %12.2f %12.2f\r",
+        printf("\r  %4d %9d %12.2f %12.2f",
                group_.Len(), node, rwd, gc_);
         fflush(stdout);
     }
@@ -337,4 +349,7 @@ void BitsDecode::AddNode(const int node, const double rwd,
                 group_.Len(), node, rwd, gc_, tm_.GetSecs());
         fflush(fp);
     }
+}
+
+void BitsDecode::Test() {
 }
