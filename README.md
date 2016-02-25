@@ -2,24 +2,16 @@
 
 ## Requirements
 
-* GCC 4.8.4 and LLVM 3.6.0, or higher
-* C++11 `pthread` support, `-pthread -std=c++11`.
-* SNAP library (will be automatically downloaded).
+* GCC 4.8.4 or LLVM 3.6.0, or higher version
+* C++11 and `pthread`
+* SNAP library
 
-## Usage
+## A minimum running example
 
-### A minimum running example
-
-The folder `exam` contains a minimum running example.
 
 ```shell
 cd exam
 chmod u+x run_all.sh
 ./run_all.sh
 ```
-
-The script will automatically download the required library, compile the
-program, and run all the programs.
-
-
 
