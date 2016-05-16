@@ -1,5 +1,3 @@
-# H-Group Closeness Centrality Calculation
-
 ## Requirements
 
 * GCC 4.8.4 or LLVM 3.6.0, or higher version
@@ -7,7 +5,6 @@
 * SNAP library
 
 ## A minimum running example
-
 
 ```shell
 cd exam
